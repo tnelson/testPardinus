@@ -3,9 +3,7 @@ import kodkod.engine.*;
 import kodkod.engine.config.ExtendedOptions;
 import kodkod.engine.config.Options;
 import kodkod.engine.satlab.SATFactory;
-import kodkod.instance.Bounds;
-import kodkod.instance.PardinusBounds;
-import kodkod.instance.Universe;
+import kodkod.instance.*;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -45,6 +43,7 @@ public class Main {
         eo.setLogTranslation(0);
         eo.setBitwidth(1); // minimal
         eo.setReporter(new TestReporter());
+        //eo.setTargetMode(); // close vs. far
 
         // PardinusSolver doesn't implement IterableSolver,
         //  even though it provides a solveAll method.
@@ -52,7 +51,7 @@ public class Main {
         //TargetOrientedSolver<ExtendedOptions> s = new PardinusSolver(eo);
         PardinusSolver s = new PardinusSolver(eo);
         //Solution sol = s.solve(f, pb);
-        Iterator<Solution> it = s.solveAll(f, pb);
+        Iterator<Solution>it = s.solveAll(f, pb);
         int count = 0;
         while(it.hasNext()) {
             Solution sol = it.next();
@@ -62,8 +61,31 @@ public class Main {
                 int pdist = NATOMS-sol.instance().relationTuples().get(p).size();
                 int qdist = sol.instance().relationTuples().get(q).size();
                 System.out.println("dist = "+(pdist+qdist));
+                System.out.println("computed dist = "+computeDist(pb, sol.instance()));
             }
         }
         System.out.println("total number of instances: "+count);
+    }
+
+    /**
+     * Compute Hamming dist between target and instance
+     * Relations not in target aren't counted.
+     * @param pb
+     * @param instance
+     * @return
+     */
+    private static int computeDist(PardinusBounds pb, Instance instance) {
+        int counter = 0;
+        for(Relation r : pb.targets().keySet()) {
+            for(Tuple t : pb.target(r)) {
+                if(!instance.tuples(r).contains(t))
+                    counter++;
+            }
+            for(Tuple t : instance.tuples(r)) {
+                if(!pb.target(r).contains(t))
+                    counter++;
+            }
+        }
+        return counter;
     }
 }
