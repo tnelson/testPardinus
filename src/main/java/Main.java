@@ -64,7 +64,7 @@ public class Main {
         // with something further away from the target.
         eo.setTargetMode(TargetOptions.TMode.FAR);
 
-        eo.setConfigOptions(eo); // TN TODO: this seems needed?
+        //eo.setConfigOptions(eo); // Not needed anymore; confusing
         eo.setReporter(new TestReporter());
 
         // Break with good interface use

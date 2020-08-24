@@ -57,7 +57,7 @@ public class BaseRun {
         opt.setRunTarget(true);
         opt.setReporter(new ConsoleReporter());
         opt.setTargetMode(TMode.CLOSE); // TN: moved this
-        opt.setConfigOptions(opt); // TN added: Why is this needed?
+        //opt.setConfigOptions(opt); // TN added: Why is this needed?
         dsolver = new PardinusSolver(opt);
 
         int n = 4;
