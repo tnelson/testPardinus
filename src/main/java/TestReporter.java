@@ -49,9 +49,16 @@ public class TestReporter implements Reporter {
     }
 
     @Override
+    public void solvingCNF(int i, int i1, int i2, int i3) {
+
+    }
+
+    // TN: Pardinus widened this method
+   /* @Override
     public void solvingCNF(int i, int i1, int i2) {
 
     }
+    */
 
     @Override
     public void reportLex(List<Map.Entry<Relation, Tuple>> list, List<Map.Entry<Relation, Tuple>> list1) {
@@ -60,7 +67,7 @@ public class TestReporter implements Reporter {
 
     @Override
     public void debug(String s) {
-        System.out.println("Debug: "+s);
+       // System.out.println("Debug: "+s);
     }
 
     @Override

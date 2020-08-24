@@ -1,12 +1,25 @@
+/*
+  Experimenting with Pardinus
+  Tim Nelson, August 2020
+
+  Sets up a target-oriented model-finding problem
+  with 2 atoms and 3 unary relations: p, q, and r.
+
+  Target for p: both atoms.
+  Target for q: no atoms.
+  Target for r: (absent).
+
+  Constraint: all 3 relations are non-empty.
+ */
+
 import kodkod.ast.*;
 import kodkod.engine.*;
 import kodkod.engine.config.ExtendedOptions;
-import kodkod.engine.config.Options;
+import kodkod.engine.config.TargetOptions;
 import kodkod.engine.satlab.SATFactory;
 import kodkod.instance.*;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 public class Main {
@@ -15,52 +28,60 @@ public class Main {
         Relation p = Relation.unary("P");
         Relation q = Relation.unary("Q");
         Relation r = Relation.unary("R");
-        Variable x = Variable.unary("x");
-        Set<Object> atoms = new HashSet<>();
 
+        Set<Object> atoms = new HashSet<>();
         int NATOMS = 2;
         for (int i = 0; i < NATOMS; i++) {
             atoms.add("Atom"+i);
         }
-
         Universe u = new Universe(atoms);
 
         PardinusBounds pb = new PardinusBounds(u);
         pb.bound(p, u.factory().allOf(1));
         pb.bound(q, u.factory().allOf(1));
         pb.bound(r, u.factory().allOf(1));
+
         // Target P = all, Q = none; R has no target
         // (but target won't satisfy fmla)
-        // Note targets
         pb.setTarget(p, u.factory().allOf(1));
         pb.setTarget(q, u.factory().noneOf(1));
+        System.out.println("target for p: "+pb.target(p));
+        System.out.println("target for q: "+pb.target(q));
+        System.out.println("target for r: "+pb.target(r));
 
         Formula f = p.some().and(q.some()).and(r.some());
+        System.out.println("formula = "+f);
+
+        ///////////////////////////////////////////////////
 
         ExtendedOptions eo = new ExtendedOptions();
         eo.setSolver(SATFactory.PMaxSAT4J);
         eo.setSymmetryBreaking(20);
         eo.setLogTranslation(0);
         eo.setBitwidth(1); // minimal
-        eo.setReporter(new TestReporter());
-        //eo.setTargetMode(); // close vs. far
 
-        // PardinusSolver doesn't implement IterableSolver,
-        //  even though it provides a solveAll method.
-        // We therefore break with good OOP...
-        //TargetOrientedSolver<ExtendedOptions> s = new PardinusSolver(eo);
+        // Note target mode: I expected FAR to begin
+        // with something further away from the target.
+        eo.setTargetMode(TargetOptions.TMode.FAR);
+
+        eo.setConfigOptions(eo); // TN TODO: this seems needed?
+        eo.setReporter(new TestReporter());
+
+        // Break with good interface use
+        // TN TODO: check if Aug 2020 update made this unnecessary?
         PardinusSolver s = new PardinusSolver(eo);
-        //Solution sol = s.solve(f, pb);
-        Iterator<Solution>it = s.solveAll(f, pb);
+
+        ///////////////////////////////////////////////////
+
+        // TN note: new "Explorer" iterator.
+        Explorer<Solution> sols =  s.solveAll(f, pb);
         int count = 0;
-        while(it.hasNext()) {
-            Solution sol = it.next();
+        while(sols.hasNext()) {
+            Solution sol = sols.next();
             count++;
             if(sol.sat()) {
+                System.out.println("-------------------");
                 System.out.println(sol.instance().relationTuples());
-                int pdist = NATOMS-sol.instance().relationTuples().get(p).size();
-                int qdist = sol.instance().relationTuples().get(q).size();
-                System.out.println("dist = "+(pdist+qdist));
                 System.out.println("computed dist = "+computeDist(pb, sol.instance()));
             }
         }
@@ -70,6 +91,7 @@ public class Main {
     /**
      * Compute Hamming dist between target and instance
      * Relations not in target aren't counted.
+     *
      * @param pb
      * @param instance
      * @return
