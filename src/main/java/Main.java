@@ -75,15 +75,20 @@ public class Main {
 
         // TN note: new "Explorer" iterator.
         Explorer<Solution> sols =  s.solveAll(f, pb);
+        System.out.println("solver target mode: "+s.options().targetMode());
         int count = 0;
+        Solution lastSol = null;
         while(sols.hasNext()) {
             Solution sol = sols.next();
             count++;
             if(sol.sat()) {
                 System.out.println("-------------------");
                 System.out.println(sol.instance().relationTuples());
-                System.out.println("computed dist = "+computeDist(pb, sol.instance()));
+                System.out.println("dist from target = "+computeDist(pb, sol.instance()));
+                if(lastSol != null)
+                    System.out.println("dist from prior soln = "+computeDist(pb, lastSol.instance(), sol.instance()));
             }
+            lastSol = sol;
         }
         System.out.println("total number of instances: "+count);
     }
@@ -106,6 +111,23 @@ public class Main {
             for(Tuple t : instance.tuples(r)) {
                 if(!pb.target(r).contains(t))
                     counter++;
+            }
+        }
+        return counter;
+    }
+
+    private static int computeDist(PardinusBounds pb, Instance old, Instance instance) {
+        int counter = 0;
+        for(Relation r : old.relations()) {
+            if(pb.targets().keySet().contains(r)) {
+                for (Tuple t : old.tuples(r)) {
+                    if (!instance.tuples(r).contains(t))
+                        counter++;
+                }
+                for (Tuple t : instance.tuples(r)) {
+                    if (!old.tuples(r).contains(t))
+                        counter++;
+                }
             }
         }
         return counter;
