@@ -16,7 +16,9 @@ import kodkod.ast.*;
 import kodkod.engine.*;
 import kodkod.engine.config.ExtendedOptions;
 import kodkod.engine.config.TargetOptions;
+import kodkod.engine.fol2sat.Translation;
 import kodkod.engine.satlab.SATFactory;
+import kodkod.engine.satlab.TargetSATSolver;
 import kodkod.instance.*;
 
 import java.util.HashSet;
@@ -62,9 +64,18 @@ public class Main {
 
         // Note target mode: I expected FAR to begin
         // with something further away from the target.
-        eo.setTargetMode(TargetOptions.TMode.FAR);
+        //eo.setTargetMode(TargetOptions.TMode.CLOSE);
 
-        //eo.setConfigOptions(eo); // Not needed anymore; confusing
+        eo.setRetargeter(
+                new Retargeter() {
+                    @Override
+                    public void retarget(TargetSATSolver targetSATSolver, TargetOptions.TMode tMode, Translation translation, int i) {
+                        // DO NOTHING! Keep the initial target
+                    }
+                });
+
+        eo.setRunTarget(true);
+        eo.setConfigOptions(eo); // Not needed anymore; confusing
         eo.setReporter(new TestReporter());
 
         // Break with good interface use

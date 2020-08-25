@@ -56,8 +56,7 @@ public class BaseRun {
         opt.setSolver(SATFactory.PMaxSAT4J);
         opt.setRunTarget(true);
         opt.setReporter(new ConsoleReporter());
-        opt.setTargetMode(TMode.CLOSE); // TN: moved this
-        //opt.setConfigOptions(opt); // TN added: Why is this needed?
+        opt.setConfigOptions(opt);
         dsolver = new PardinusSolver(opt);
 
         int n = 4;
@@ -82,6 +81,8 @@ public class BaseRun {
         bounds.setTarget(a, bounds.lowerBound(a));
         bounds.setTarget(b, bounds.lowerBound(b));
 
+        // solution closest or farthest from the target
+        opt.setTargetMode(TMode.FAR);
         Explorer<Solution> sols = dsolver.solveAll(formula, bounds);
 
         // first solution will use set targets
